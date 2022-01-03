@@ -1,0 +1,949 @@
+---
+title: "Covid-19 Growth Rates"
+author: "Albin Abraham"
+date: "5/3/2020"
+output: html_document
+---
+
+##Introduction
+
+
+Claim : If a county has a higher density, then it would have a higher number of positive tests per population. 
+
+Converse : If a county has a higher density, then it would have a lower number of positive tests per population. 
+
+Other Claims : 
+Temperature affects infection rates.
+  - need more data to make conclusions.
+
+Possible Applications of this data?
+  - predict the way certain restrictive policies are implemented in the future
+    - more dense areas would have more restrictions. 
+
+
+##Methodology:
+
+What was our reasoning behind our study/actions?
+Why these counties?
+How did we collect our data?
+What did we analize and why?
+Why choose 28 days/ points for our data?
+Difficulty of extending the days? 
+Why not use Anova? probably use a similar response to Peter Dracopoulos.
+Talk of our Labeling system if needed.
+How we organized them
+Why we organized them into BigTen Data frame.  
+
+
+##Issues with data during analysis
+Need more counties to normalize data and make a better conclusion
+wait to run study so that we would have more days
+Day 0? should it be moved to another location?
+We wanted to look at humidity and it was not possible to obtain a proper data frame for temperature. 
+  - obstacles with aquiring data.
+  
+Testing issues and possible errs for data
+  - delays in testing 
+  - data points are missrepresented 
+  - hospitals reporting false deaths for incentives.
+
+Data could be biased cause if communtiy is closed for longer, hospitals would have less tests.
+
+
+
+```{r setup, include=FALSE}
+# set up of each data frame (counties)
+knitr::opts_chunk$set(echo = TRUE)
+######################################################################################################
+################################################# SETUP ##############################################
+######################################################################################################
+setwd("/Users/a2/Downloads/College/Stats/382") #Step 1
+zdata <-read.csv("Covid_Cases.csv") 
+
+######################################################################################################
+####################################### COUNTY DATA FRAME SETUP ######################################
+######################################################################################################
+
+#1# Jefferson County starts on March 25th & ends on April 21st ####################################################################
+
+JFD <- subset(zdata, zdata$State == "AL" & zdata$County.Name == "Jefferson County")
+JFD <- JFD[5:length(JFD)]
+JFD <- t(JFD)
+colnames(JFD) <- "Cases"
+JFD <- as.data.frame(JFD)
+JFD <- subset(JFD, JFD$Cases > 100 & JFD$Cases <= 700)
+
+#2# Contra Costa County starts on March 25th & ends on April 21st #################################################################
+
+CCD <- subset(zdata, zdata$State == "CA" & zdata$County.Name == "Contra Costa County")
+CCD <- CCD[5:length(CCD)]
+CCD <- t(CCD)
+colnames(CCD) <- "Cases"
+CCD <- as.data.frame(CCD)
+CCD <- subset(CCD, CCD$Cases > 100 & CCD$Cases < 750)
+length(CCD$Cases)
+#3# LA County starts on March 17th & ends on April 13th ###########################################################################
+
+LAD <- subset(zdata, zdata$State == "CA" & zdata$County.Name == "Los Angeles County")
+LAD <- LAD[5:length(LAD)]
+LAD <- t(LAD)
+colnames(LAD) <- "Cases"
+LAD <- as.data.frame(LAD)
+LAD <- subset(LAD, LAD$Cases > 100 & LAD$Cases < 10000)
+
+#4# Philadelphia County starts on March 23rd & ends on April 19th #################################################################
+
+PHD <- subset(zdata, zdata$State == "PA" & zdata$County.Name == "Philadelphia County")
+PHD <- PHD[5:length(PHD)]
+PHD <- t(PHD)
+colnames(PHD) <- "Cases"
+PHD <- as.data.frame(PHD)
+PHD <- subset(PHD, PHD$Cases > 100 & PHD$Cases < 9000)
+
+#5# Queens County starts on March 16th & ends on April 12th #######################################################################
+
+QND <- subset(zdata, zdata$State == "NY" & zdata$County.Name == "Queens County")
+QND <- QND[5:length(QND)]
+QND <- t(QND)
+colnames(QND) <- "Cases"
+QND <- as.data.frame(QND)
+QND <- subset(QND, QND$Cases > 100 & QND$Cases < 33000)
+
+#6# Cook County starts on March 17th & ends on April 13th #########################################################################
+
+CKD <- subset(zdata, zdata$State == "IL" & zdata$County.Name == "Cook County")
+CKD <- CKD[5:length(CKD)]
+CKD <- t(CKD)
+colnames(CKD) <- "Cases"
+CKD <- as.data.frame(CKD)
+CKD <- subset(CKD, CKD$Cases > 100 & CKD$Cases < 16000)
+
+#7# Miami County starts on March 19th & ends on April 15th ########################################################################
+
+MDD <- subset(zdata, zdata$State == "FL" & zdata$County.Name == "Miami-Dade County")
+MDD <- MDD[5:length(MDD)]
+MDD <- t(MDD)
+colnames(MDD) <- "Cases"
+MDD <- as.data.frame(MDD)
+MDD <- subset(MDD, MDD$Cases > 100 & MDD$Cases < 8300)
+
+#8# King County starts on March 9th & ends on April 5th ###########################################################################
+
+KGD <- subset(zdata, zdata$State == "WA" & zdata$County.Name == "King County")
+KGD <- KGD[5:length(KGD)]
+KGD <- t(KGD)
+colnames(KGD) <- "Cases"
+KGD <- as.data.frame(KGD)
+KGD <- subset(KGD, KGD$Cases > 100 & KGD$Cases < 3200)
+
+#9# Harris County starts on March 25th & ends on April 21st #######################################################################
+
+HAD <- subset(zdata, zdata$State == "TX" & zdata$County.Name == "Harris County")
+HAD <- HAD[5:length(HAD)]
+HAD <- t(HAD)
+colnames(HAD) <- "Cases"
+HAD <- as.data.frame(HAD)
+HAD <- subset(HAD, HAD$Cases > 100 & HAD$Cases < 5000)
+
+#10# Wayne County starts on March 19th & ends on April 15th #######################################################################
+
+WAD <- subset(zdata, zdata$State == "MI" & zdata$County.Name == "Wayne County")
+WAD <- WAD[5:length(WAD)]
+WAD <- t(WAD)
+colnames(WAD) <- "Cases"
+WAD <- as.data.frame(WAD)
+WAD <- subset(WAD, WAD$Cases > 100 & WAD$Cases < 13000)
+WAD
+length(WAD$Cases)
+
+
+JFD$Day <- 0:27
+CCD$Day <- 0:27
+LAD$Day <- 0:27
+PHD$Day <- 0:27
+QND$Day <- 0:27
+CKD$Day <- 0:27
+MDD$Day <- 0:27
+KGD$Day <- 0:27
+HAD$Day <- 0:27
+WAD$Day <- 0:27
+
+JFD[,c("Day","Cases")] -> JFD
+CCD[,c("Day","Cases")] -> CCD
+LAD[,c("Day","Cases")] -> LAD
+PHD[,c("Day","Cases")] -> PHD
+QND[,c("Day","Cases")] -> QND
+CKD[,c("Day","Cases")] -> CKD
+MDD[,c("Day","Cases")] -> MDD
+KGD[,c("Day","Cases")] -> KGD
+HAD[,c("Day","Cases")] -> HAD
+WAD[,c("Day","Cases")] -> WAD
+
+
+
+######################################################################################################
+###################################### TOTAL # INFECTION DAY 27 ######################################
+######################################################################################################
+
+rep(JFD[28,2],28)->JFD$Day27Infections
+rep(CCD[28,2],28)->CCD$Day27Infections
+rep(LAD[28,2],28)->LAD$Day27Infections
+rep(PHD[28,2],28)->PHD$Day27Infections
+rep(QND[28,2],28)->QND$Day27Infections
+rep(CKD[28,2],28)->CKD$Day27Infections
+rep(MDD[28,2],28)->MDD$Day27Infections
+rep(KGD[28,2],28)->KGD$Day27Infections
+rep(HAD[28,2],28)->HAD$Day27Infections
+rep(WAD[28,2],28)->WAD$Day27Infections
+
+######################################################################################################
+########################################## TEMPERATURE DATA ##########################################
+######################################################################################################
+
+JFD$TEMP <- c(75,83,84,85,76,74,60,67,72,78,80,82,84,73,80,77,62,73,73,67,63,62,70,77,67,59,73,77)
+CCD$TEMP <- c(58,59,60,58,59,66,69,65,67,67,59,53,53,65,67,63,68,62,71,75,80,83,71,63,66,68,64,72)
+LAD$TEMP <- c(62,65,64,66,68,71,67,66,65,62,66,68,68,76,77,74,69,70,70,64,63,65,63,56,65,72,62,66)
+PHD$TEMP <- c(45,59,47,60,69,57,53,55,48,56,58,57,56,70,58,58,74,66,49,57,59,71,60,54,51,53,49,62)
+QND$TEMP <- c(46,53,53,51,70,64,46,41,52,46,57,66,51,49,53,47,55,59,51,61,63,66,66,63,56,49,56,60)
+CKD$TEMP <- c(48,45,64,63,32,35,45,45,59,52,48,63,64,48,41,49,56,64,56,47,62,80,66,48,50,62,66,56)
+MDD$TEMP <- c(80,80,80,80,80,80,83,82,82,79,82,82,87,85,77,79,80,81,81,82,85,91,92,81,83,84,85,86)
+KGD$TEMP <- c(51,53,51,50,40,45,47,57,56,57,62,63,57,61,49,48,50,49,49,55,55,51,50,49,48,49,55,56)
+HAD$TEMP <- c(88,86,87,80,81,83,75,74,75,79,70,73,76,86,89,92,74,76,90,71,69,69,74,81,74,82,83,85)
+WAD$TEMP <- c(49,63,37,39,41,43,56,57,47,50,63,48,44,49,61,62,59,56,58,69,70,50,44,57,61,54,41,37)
+
+######################################################################################################
+###################################### AVERAGE TEMPERATURE DATA ######################################
+######################################################################################################
+
+rep(mean(JFD$TEMP),28) -> JFD$AveTemp
+rep(mean(CCD$TEMP),28) -> CCD$AveTemp
+rep(mean(LAD$TEMP),28) -> LAD$AveTemp
+rep(mean(PHD$TEMP),28) -> PHD$AveTemp
+rep(mean(QND$TEMP),28) -> QND$AveTemp
+rep(mean(CKD$TEMP),28) -> CKD$AveTemp
+rep(mean(MDD$TEMP),28) -> MDD$AveTemp
+rep(mean(KGD$TEMP),28) -> KGD$AveTemp
+rep(mean(HAD$TEMP),28) -> HAD$AveTemp
+rep(mean(WAD$TEMP),28) -> WAD$AveTemp
+
+######################################################################################################
+############################################### E-score ##############################################
+######################################################################################################
+
+JFD$Escore <- rep(1.30,28)
+JFD$Escore <- rep(1.30,28)
+CCD$Escore <- rep(25.0,28)
+LAD$Escore <- rep(39.6,28)
+PHD$Escore <- rep(15.0,28)
+QND$Escore <- rep(29.5,28)
+CKD$Escore <- rep(76.8,28)
+MDD$Escore <- rep(20.8,28)
+KGD$Escore <- rep(21.9,28)
+HAD$Escore <- rep(20.0,28)
+WAD$Escore <- rep(16.8,28)
+
+
+######################################################################################################
+##################################### Mean Distance From an Airport ##################################
+######################################################################################################
+
+JFD$MeanDistance<-rep(28.76,28)
+CCD$MeanDistance<-rep(12.77,28)
+LAD$MeanDistance<-rep(12.77,28)
+PHD$MeanDistance<-rep(20.44,28)
+QND$MeanDistance<-rep(16.30,28)
+CKD$MeanDistance<-rep(15.87,28)
+MDD$MeanDistance<-rep(12.16,28)
+KGD$MeanDistance<-rep(18.85,28)
+HAD$MeanDistance<-rep(16.15,28)
+WAD$MeanDistance<-rep(21.35,28)
+
+
+######################################################################################################
+################################################### Area #############################################
+######################################################################################################
+
+
+JFD$Area<-rep(1124,28)
+CCD$Area<-rep(716,28)
+LAD$Area<-rep(4058,28)
+PHD$Area<-rep(134,28)
+QND$Area<-rep(109,28)
+CKD$Area<-rep(945,28)
+MDD$Area<-rep(1899,28)
+KGD$Area<-rep(2116,28)
+HAD$Area<-rep(1703,28)
+WAD$Area<-rep(612,28)
+
+
+######################################################################################################
+################################################ Population ##########################################
+######################################################################################################
+
+
+JFD$Population <- rep(0.659,28)
+CCD$Population <- rep(1.154,28)
+LAD$Population <- rep(10.04,28)
+PHD$Population <- rep(1.584,28)
+QND$Population <- rep(2.273,28)
+CKD$Population <- rep(5.15,28)
+MDD$Population <- rep(2.717,28)
+KGD$Population <- rep(2.253,28)
+HAD$Population <- rep(4.713,28)
+WAD$Population <- rep(1.749,28)
+
+######################################################################################################
+################################################# Density ############################################
+######################################################################################################
+
+JFD$Population/JFD$Area -> JFD$Density
+CCD$Population/CCD$Area -> CCD$Density
+LAD$Population/LAD$Area -> LAD$Density
+PHD$Population/PHD$Area -> PHD$Density
+QND$Population/QND$Area -> QND$Density
+CKD$Population/CKD$Area -> CKD$Density
+MDD$Population/MDD$Area -> MDD$Density
+KGD$Population/KGD$Area -> KGD$Density
+HAD$Population/HAD$Area -> HAD$Density
+WAD$Population/WAD$Area -> WAD$Density
+
+######################################################################################################
+############################################### Closed Days ##########################################
+######################################################################################################
+
+JFD$DaysClosed <- rep(24,28)
+CCD$DaysClosed <- rep(28,28)
+LAD$DaysClosed <- rep(27,28)
+PHD$DaysClosed <- rep(28,28)
+QND$DaysClosed <- rep(22,28)
+CKD$DaysClosed <- rep(24,28)
+MDD$DaysClosed <- rep(14,28)
+KGD$DaysClosed <- rep(21,28)
+HAD$DaysClosed <- rep(20,28)
+WAD$DaysClosed <- rep(23,28)
+
+
+```
+
+###Focus in on new york and Chicago
+
+Data :
+
+  Tasks : 
+    Make box plot of infection rates
+    Make box plot of total number of infetions
+    Make box plot of infections per density
+    
+    Make histograms for individual county cases
+    
+
+``` {r data analysis}
+######################################################################################################
+#################################### Daily Infection / Population ####################################
+######################################################################################################
+
+x <- sequence(28)
+
+tempv <- sequence(28)
+for(i in x){
+  tempv[i] <- (JFD$`Cases`[i+1] - JFD$`Cases`[i])}
+JFD$InfectionsByDay <- tempv
+
+tempv <- sequence(28)
+for(i in x){
+  tempv[i] <- (CCD$`Cases`[i+1] - CCD$`Cases`[i])}
+CCD$InfectionsByDay <- tempv
+
+tempv <- sequence(28)
+for(i in x){
+  tempv[i] <- (LAD$`Cases`[i+1] - LAD$`Cases`[i])}
+LAD$InfectionsByDay <- tempv
+
+tempv <- sequence(28)
+for(i in x){
+  tempv[i] <- (PHD$`Cases`[i+1] - PHD$`Cases`[i])}
+PHD$InfectionsByDay <- tempv
+
+tempv <- sequence(28)
+for(i in x){
+  tempv[i] <- (QND$`Cases`[i+1] - QND$`Cases`[i])}
+QND$InfectionsByDay <- tempv
+
+tempv <- sequence(28)
+for(i in x){
+  tempv[i] <- (CKD$`Cases`[i+1] - CKD$`Cases`[i])}
+CKD$InfectionsByDay <- tempv
+
+tempv <- sequence(28)
+for(i in x){
+  tempv[i] <- (MDD$`Cases`[i+1] - MDD$`Cases`[i])}
+MDD$InfectionsByDay <- tempv
+
+tempv <- sequence(28)
+for(i in x){
+  tempv[i] <- (KGD$`Cases`[i+1] - KGD$`Cases`[i])}
+KGD$InfectionsByDay <- tempv
+
+tempv <- sequence(28)
+for(i in x){
+  tempv[i] <- (HAD$`Cases`[i+1] - HAD$`Cases`[i])}
+HAD$InfectionsByDay <- tempv
+
+tempv <- sequence(28)
+for(i in x){
+  tempv[i] <- (WAD$`Cases`[i+1] - WAD$`Cases`[i])}
+WAD$InfectionsByDay <- tempv
+
+####################################################################################################
+################################ Average Infections Per Day Per Pop ################################
+####################################################################################################
+
+JFD$InfectionsByDay / JFD$Population -> JFD$PositiveTestPerPop
+CCD$InfectionsByDay / CCD$Population -> CCD$PositiveTestPerPop
+LAD$InfectionsByDay / LAD$Population -> LAD$PositiveTestPerPop
+PHD$InfectionsByDay / PHD$Population -> PHD$PositiveTestPerPop
+QND$InfectionsByDay / QND$Population -> QND$PositiveTestPerPop
+CKD$InfectionsByDay / CKD$Population -> CKD$PositiveTestPerPop
+MDD$InfectionsByDay / MDD$Population -> MDD$PositiveTestPerPop
+KGD$InfectionsByDay / KGD$Population -> KGD$PositiveTestPerPop
+HAD$InfectionsByDay / HAD$Population -> HAD$PositiveTestPerPop
+WAD$InfectionsByDay / WAD$Population -> WAD$PositiveTestPerPop
+
+
+rep(mean(JFD$PositiveTestPerPop[1:27]),28) -> JFD$AverageInfPerDay
+rep(mean(CCD$PositiveTestPerPop[1:27]),28) -> CCD$AverageInfPerDay
+rep(mean(LAD$PositiveTestPerPop[1:27]),28) -> LAD$AverageInfPerDay
+rep(mean(PHD$PositiveTestPerPop[1:27]),28) -> PHD$AverageInfPerDay
+rep(mean(QND$PositiveTestPerPop[1:27]),28) -> QND$AverageInfPerDay
+rep(mean(CKD$PositiveTestPerPop[1:27]),28) -> CKD$AverageInfPerDay
+rep(mean(MDD$PositiveTestPerPop[1:27]),28) -> MDD$AverageInfPerDay
+rep(mean(KGD$PositiveTestPerPop[1:27]),28) -> KGD$AverageInfPerDay
+rep(mean(HAD$PositiveTestPerPop[1:27]),28) -> HAD$AverageInfPerDay
+rep(mean(WAD$PositiveTestPerPop[1:27]),28) -> WAD$AverageInfPerDay
+
+
+JFD$AverageInfPerDay/JFD$Population -> JFD$AvInfPerPop
+CCD$AverageInfPerDay/CCD$Population -> CCD$AvInfPerPop
+LAD$AverageInfPerDay/LAD$Population -> LAD$AvInfPerPop
+PHD$AverageInfPerDay/PHD$Population -> PHD$AvInfPerPop
+QND$AverageInfPerDay/QND$Population -> QND$AvInfPerPop
+CKD$AverageInfPerDay/CKD$Population -> CKD$AvInfPerPop
+MDD$AverageInfPerDay/MDD$Population -> MDD$AvInfPerPop
+KGD$AverageInfPerDay/KGD$Population -> KGD$AvInfPerPop
+HAD$AverageInfPerDay/HAD$Population -> HAD$AvInfPerPop
+WAD$AverageInfPerDay/WAD$Population -> WAD$AvInfPerPop
+
+####################################################################################################
+############################### Average Infections Per Day Per Area ################################
+####################################################################################################
+JFD$Cases / JFD$Area -> JFD$CasesPerArea
+CCD$Cases / CCD$Area -> CCD$CasesPerArea
+LAD$Cases / LAD$Area -> LAD$CasesPerArea
+PHD$Cases / PHD$Area -> PHD$CasesPerArea
+QND$Cases / QND$Area -> QND$CasesPerArea
+CKD$Cases / CKD$Area -> CKD$CasesPerArea
+MDD$Cases / MDD$Area -> MDD$CasesPerArea
+KGD$Cases / KGD$Area -> KGD$CasesPerArea
+HAD$Cases / HAD$Area -> HAD$CasesPerArea
+WAD$Cases / WAD$Area -> WAD$CasesPerArea
+
+JFD$Cases / (JFD$Density*1000000) -> JFD$CasesPerDensity
+CCD$Cases / (CCD$Density*1000000) -> CCD$CasesPerDensity
+LAD$Cases / (LAD$Density*1000000) -> LAD$CasesPerDensity
+PHD$Cases / (PHD$Density*1000000) -> PHD$CasesPerDensity
+QND$Cases / (QND$Density*1000000) -> QND$CasesPerDensity
+CKD$Cases / (CKD$Density*1000000) -> CKD$CasesPerDensity
+MDD$Cases / (MDD$Density*1000000) -> MDD$CasesPerDensity
+KGD$Cases / (KGD$Density*1000000) -> KGD$CasesPerDensity
+HAD$Cases / (HAD$Density*1000000) -> HAD$CasesPerDensity
+WAD$Cases / (WAD$Density*1000000) -> WAD$CasesPerDensity
+
+JFD$InfectionsByDay / JFD$Area -> JFD$PositiveTestPerArea
+CCD$InfectionsByDay / CCD$Area -> CCD$PositiveTestPerArea
+LAD$InfectionsByDay / LAD$Area -> LAD$PositiveTestPerArea
+PHD$InfectionsByDay / PHD$Area -> PHD$PositiveTestPerArea
+QND$InfectionsByDay / QND$Area -> QND$PositiveTestPerArea
+CKD$InfectionsByDay / CKD$Area -> CKD$PositiveTestPerArea
+MDD$InfectionsByDay / MDD$Area -> MDD$PositiveTestPerArea
+KGD$InfectionsByDay / KGD$Area -> KGD$PositiveTestPerArea
+HAD$InfectionsByDay / HAD$Area -> HAD$PositiveTestPerArea
+WAD$InfectionsByDay / WAD$Area -> WAD$PositiveTestPerArea
+
+JFD$InfectionsByDay / (JFD$Density*1000000) -> JFD$PositiveTestPerDensity
+CCD$InfectionsByDay / (CCD$Density*1000000) -> CCD$PositiveTestPerDensity
+LAD$InfectionsByDay / (LAD$Density*1000000) -> LAD$PositiveTestPerDensity
+PHD$InfectionsByDay / (PHD$Density*1000000) -> PHD$PositiveTestPerDensity
+QND$InfectionsByDay / (QND$Density*1000000) -> QND$PositiveTestPerDensity
+CKD$InfectionsByDay / (CKD$Density*1000000) -> CKD$PositiveTestPerDensity
+MDD$InfectionsByDay / (MDD$Density*1000000) -> MDD$PositiveTestPerDensity
+KGD$InfectionsByDay / (KGD$Density*1000000) -> KGD$PositiveTestPerDensity
+HAD$InfectionsByDay / (HAD$Density*1000000) -> HAD$PositiveTestPerDensity
+WAD$InfectionsByDay / (WAD$Density*1000000) -> WAD$PositiveTestPerDensity
+
+######################################################################################################
+#################################### Day 27 Infections Per Population ################################
+######################################################################################################
+
+100*JFD$Day27Infections/(JFD$Population*10000000) -> JFD$Day27PercentPositives
+100*CCD$Day27Infections/(CCD$Population*10000000) -> CCD$Day27PercentPositives
+100*LAD$Day27Infections/(LAD$Population*10000000) -> LAD$Day27PercentPositives
+100*PHD$Day27Infections/(PHD$Population*10000000) -> PHD$Day27PercentPositives
+100*QND$Day27Infections/(QND$Population*10000000) -> QND$Day27PercentPositives
+100*CKD$Day27Infections/(CKD$Population*10000000) -> CKD$Day27PercentPositives
+100*MDD$Day27Infections/(MDD$Population*10000000) -> MDD$Day27PercentPositives
+100*KGD$Day27Infections/(KGD$Population*10000000) -> KGD$Day27PercentPositives
+100*HAD$Day27Infections/(HAD$Population*10000000) -> HAD$Day27PercentPositives
+100*WAD$Day27Infections/(WAD$Population*10000000) -> WAD$Day27PercentPositives
+
+######################################################################################################
+######################################## 10 County Data Frames #######################################
+######################################################################################################
+
+as.data.frame(matrix(nrow=10,ncol=10,0)) -> BigTen
+rownames(BigTen)<-c("Jefferson", "Contra Costa", "Los Angeles","Philadelphia","Queens","Cook","Miami-Dade","King","Harris","Wayne")
+colnames(BigTen)<-c("Day27PercentPositives","AvInfPerPop", "AveTemp","Escore","MeanDistance","Area","Population","Density", "DaysClosed","Day27Infections")
+BigTen[1,]<-JFD[1,c("Day27PercentPositives","AvInfPerPop", "AveTemp","Escore","MeanDistance","Area","Population","Density", "DaysClosed","Day27Infections")]
+BigTen[2,]<-CCD[1,c("Day27PercentPositives","AvInfPerPop", "AveTemp","Escore","MeanDistance","Area","Population","Density", "DaysClosed","Day27Infections")]
+BigTen[3,]<-LAD[1,c("Day27PercentPositives","AvInfPerPop", "AveTemp","Escore","MeanDistance","Area","Population","Density", "DaysClosed","Day27Infections")]
+BigTen[4,]<-PHD[1,c("Day27PercentPositives","AvInfPerPop", "AveTemp","Escore","MeanDistance","Area","Population","Density", "DaysClosed","Day27Infections")]
+BigTen[5,]<-QND[1,c("Day27PercentPositives","AvInfPerPop", "AveTemp","Escore","MeanDistance","Area","Population","Density", "DaysClosed","Day27Infections")]
+BigTen[6,]<-CKD[1,c("Day27PercentPositives","AvInfPerPop", "AveTemp","Escore","MeanDistance","Area","Population","Density", "DaysClosed","Day27Infections")]
+BigTen[7,]<-MDD[1,c("Day27PercentPositives","AvInfPerPop", "AveTemp","Escore","MeanDistance","Area","Population","Density", "DaysClosed","Day27Infections")]
+BigTen[8,]<-KGD[1,c("Day27PercentPositives","AvInfPerPop", "AveTemp","Escore","MeanDistance","Area","Population","Density", "DaysClosed","Day27Infections")]
+BigTen[9,]<-HAD[1,c("Day27PercentPositives","AvInfPerPop", "AveTemp","Escore","MeanDistance","Area","Population","Density", "DaysClosed","Day27Infections")]
+BigTen[10,]<-WAD[1,c("Day27PercentPositives","AvInfPerPop", "AveTemp","Escore","MeanDistance","Area","Population","Density", "DaysClosed","Day27Infections")]
+BigTen
+
+BigTenAnalysis <- BigTen[,c("Day27PercentPositives","AvInfPerPop","AveTemp","Escore","MeanDistance","Density","DaysClosed")]
+
+BigTenAnalysis
+
+summary(lm(formula = BigTen$Day27Infections~BigTen$AveTemp+BigTen$Escore + BigTen$MeanDistance + BigTen$Density + BigTen$DaysClosed-1))
+
+```
+
+``` {r Graphs}
+##########################################################################################
+######################################### Graphs #########################################
+##########################################################################################
+
+#Boxplots for all cases in all ten counties 
+#  - explain that it looks the way it does due to a lack of data sets(counties)
+#  - if we use more samples then there would be a more normalized distribution
+#    - if this is done effectively, then perhaps a better conclusion could have been drawn.
+
+#Boxplots for Average number of infections per Density for all counties
+#  - explain why this does not account for all possible variables related to this study
+#  - explain how/why density would make up for the errs in this graph
+#  - accounting for density accounts for regions that are in need of intervention
+
+#Boxplot for Average number of infection rates for all counties
+#  - The boxplot helps identify outliers for Average number of infection rates 
+#  - An analysis of the individual counties would help us distinguish the impact of different variables. 
+#  - Example :
+#     - We would want to check outlier communities with low average infection rates to see if a specific variable was causing/correlated to this decrease(outlier)
+#     - if enough outliers were to be analyzed and support a particular claim/policy then that data would suggest that it is an effective policy
+
+# Calculate Average number of cases per county and store that as one vector
+AverageCases <- sequence(10)
+AverageCases[1] <- JFD$Day27Infections[1]
+AverageCases[2] <- HAD$Day27Infections[1]
+AverageCases[3] <- KGD$Day27Infections[1]
+AverageCases[4] <- LAD$Day27Infections[1]
+AverageCases[5] <- CKD$Day27Infections[1]
+AverageCases[6] <- QND$Day27Infections[1]
+AverageCases[7] <- MDD$Day27Infections[1]
+AverageCases[8] <- WAD$Day27Infections[1]
+AverageCases[9] <- CCD$Day27Infections[1]
+AverageCases[10] <- PHD$Day27Infections[1]
+boxplot(AverageCases, col = "purple", main = "Average Number of Cases Per County", ylab = "Cases")
+
+AvCasesPerDensity <- c(1:10)
+AvCasesPerDensity[1] <- AverageCases[1]/(JFD$Density[1] * 1000000)
+AvCasesPerDensity[2] <- AverageCases[2]/(HAD$Density[1] * 1000000)
+AvCasesPerDensity[3] <- AverageCases[3]/(KGD$Density[1] * 1000000)
+AvCasesPerDensity[4] <- AverageCases[4]/(LAD$Density[1] * 1000000)
+AvCasesPerDensity[5] <- AverageCases[5]/(CKD$Density[1] * 1000000)
+AvCasesPerDensity[6] <- AverageCases[6]/(QND$Density[1] * 1000000)
+AvCasesPerDensity[7] <- AverageCases[7]/(MDD$Density[1] * 1000000)
+AvCasesPerDensity[8] <- AverageCases[8]/(WAD$Density[1] * 1000000)
+AvCasesPerDensity[9] <- AverageCases[9]/(CCD$Density[1] * 1000000)
+AvCasesPerDensity[10] <- AverageCases[10]/(PHD$Density[1] * 1000000)
+boxplot(AvCasesPerDensity, col = "blue", main = "Average Number of Cases Per Density", ylab = "Cases/Density")
+
+AverageInfectionRates <- c(1:10)
+JFD$AverageInfPerDay[1] -> AverageInfectionRates[1]
+CCD$AverageInfPerDay[1] -> AverageInfectionRates[2]
+LAD$AverageInfPerDay[1] -> AverageInfectionRates[3]
+PHD$AverageInfPerDay[1] -> AverageInfectionRates[4]
+QND$AverageInfPerDay[1] -> AverageInfectionRates[5]
+CKD$AverageInfPerDay[1] -> AverageInfectionRates[6]
+MDD$AverageInfPerDay[1] -> AverageInfectionRates[7]
+KGD$AverageInfPerDay[1] -> AverageInfectionRates[8]
+HAD$AverageInfPerDay[1] -> AverageInfectionRates[9]
+WAD$AverageInfPerDay[1] -> AverageInfectionRates[10]
+boxplot(AvCasesPerDensity, col = "red", main = "Average Rate of Infection per County", ylab = "Infection Rates")
+
+# T tests
+
+#t.test(BigTen$AvInfPerPop)      # Average infection Rates / population size for each respective county
+#t.test(AverageCases)            # Average number of cases per county
+#t.test(AverageInfectionRates)   # Average Infection Rates per county of the 28 day timespan
+#t.test(AvCasesPerDensity)       # Average Cases per density of each respective county
+
+#Graph Order 
+
+# Analysis of Results
+#1.) Pairs analysis 
+#    - show possible correlations and state why density is used to adjust graphs
+#    - why are we using density accounted measurement to rank(compare) variables. 
+
+# Linear Regression
+
+#2.) Graph of Cases Per Day
+#  - explain reasoning why New York is on top and suggest comparing variables while accounting for density will draw more accurate conclusions.
+#    - based on pairs analysis
+
+#3.) Graph of Cases per Density # Miami will be on top
+#  - Present Density graph and explain reasoning
+
+# use these variables to show a corelation to exposer
+#4.) Graph of Cases per Density with Temperature Ranking
+#  - Since Data set is small there may not be a valid conclusion to be drawn from this case
+
+#5.) Graph of Cases per Density with Escore
+#  - Since Data set is small there may not be a valid conclusion to be drawn from this case
+
+#6.) Graph of Cases per Density with mean Distance
+#  - Since Data set is small there may not be a valid conclusion to be drawn from this case
+
+#7.) Graph of Cases per Density with days closed
+#  - Since Data set is small there may not be a valid conclusion to be drawn from this case
+
+#8.) Graph of Individual Counties and explain why chicago and New York need further analysis.
+
+#9.) Graph of Counties Positive tests per Density overlapped
+#   - propose new study/ another way to ana
+
+
+pairs(BigTenAnalysis)
+######################################################################################################
+################################## Linear Regression & Analysis ######################################
+######################################################################################################
+# Linear regression on Increase of cases/population size per day.
+summary(lm(formula = BigTen$Day27Infections~BigTen$AveTemp+BigTen$Escore + BigTen$MeanDistance + BigTen$Density + BigTen$DaysClosed))
+
+# helps show correlation with density
+# other variables aren't as conclusive since our data does not have enough data entries.
+
+par(mfrow = c(1,1))
+par(mar = c(5,5,2,2)) # alters the margins and prevent possible margin errors.
+
+
+scatter.smooth(HAD$Day,HAD$Cases, type="o", col="white",ylim = c(0,35000),xlab = "Day", ylab = "Confirmed Cases", main = "Covid-19 Cases", lwd = 2)
+grid(nx = NULL, ny = NULL, col = "darkgray", lty = "dotted")
+lo <- loess(CCD$Cases~CCD$Day)
+lines(predict(lo), col="red", lwd=2)
+lo <- loess(LAD$Cases~LAD$Day)
+lines(predict(lo), col="green", lwd=2)
+lo <- loess(PHD$Cases~PHD$Day)
+lines(predict(lo), col="orange", lwd=2)
+lo <- loess(QND$Cases~QND$Day)
+lines(predict(lo), col="yellow", lwd=2)
+lo <- loess(CKD$Cases~CKD$Day)
+lines(predict(lo), col="purple", lwd=2)
+lo <- loess(MDD$Cases~MDD$Day)
+lines(predict(lo), col="dark green", lwd=2)
+lo <- loess(KGD$Cases~KGD$Day)
+lines(predict(lo), col="brown", lwd=2)
+lo <- loess(JFD$Cases~JFD$Day)
+lines(predict(lo), col="blue", lwd=2)
+lo <- loess(WAD$Cases~WAD$Day)
+lines(predict(lo), col="dark red", lwd=2)
+
+legend(1, 35000, legend=c("Contra Costa County", "LA County", "Philadelphia County", "Queen's County", "Cook County", "Miami-Dade County", "King County", "Harris County", "Wayne County", "Jefferson County"), col=c("red", "green","orange", "yellow", "purple", "dark green", "brown", "black", "dark red", "blue"), lty=1, cex=0.9)
+
+
+#********* use this (the graph below) to rank all of the ranking variables
+# explain how we processed this variable. 
+# explain all of the factors related to each county
+
+# MDD had highest point
+
+scatter.smooth(HAD$Day,HAD$CasesPerDensity, type="o", col="white",ylim = c(0,6),xlab = "Day", ylab = "Positive Test/Density", main = "Number of Cases/Density", lwd = 2)
+grid(nx = NULL, ny = NULL, col = "darkgray", lty = "dotted")
+lo <- loess(CCD$CasesPerDensity~CCD$Day)
+lines(predict(lo), col="red", lwd=2)
+lo <- loess(LAD$CasesPerDensity~LAD$Day)
+lines(predict(lo), col="green", lwd=2)
+lo <- loess(PHD$CasesPerDensity~PHD$Day)
+lines(predict(lo), col="orange", lwd=2)
+lo <- loess(QND$CasesPerDensity~QND$Day)
+lines(predict(lo), col="yellow", lwd=2)
+lo <- loess(CKD$CasesPerDensity~CKD$Day)
+lines(predict(lo), col="purple", lwd=2)
+lo <- loess(MDD$CasesPerDensity~MDD$Day)
+lines(predict(lo), col="dark green", lwd=2)
+lo <- loess(KGD$CasesPerDensity~KGD$Day)
+lines(predict(lo), col="brown", lwd=2)
+lo <- loess(JFD$CasesPerDensity~JFD$Day)
+lines(predict(lo), col="blue", lwd=2)
+lo <- loess(WAD$CasesPerDensity~WAD$Day)
+lines(predict(lo), col="dark red", lwd=2)
+legend(1, 6, legend=c("Contra Costa County", "LA County", "Philadelphia County", "Queen's County", "Cook County", "Miami-Dade County", "King County", "Harris County", "Wayne County", "Jefferson County"), col=c("red", "green","orange", "yellow", "purple", "dark green", "brown", "black", "dark red", "blue"), lty=1, cex=0.9)
+
+# Ranked by Temperature
+scatter.smooth(HAD$Day,HAD$CasesPerDensity, type="o", col="white",ylim = c(0,6),xlab = "Day", ylab = "Positive Test/Density ", main = "Number of Cases/Density Ranked by Temperature(F)", lwd = 2)
+grid(nx = NULL, ny = NULL, col = "darkgray", lty = "dotted")
+lo <- loess(CCD$CasesPerDensity~CCD$Day)
+lines(predict(lo), col="red", lwd=2)
+lo <- loess(LAD$CasesPerDensity~LAD$Day)
+lines(predict(lo), col="green", lwd=2)
+lo <- loess(PHD$CasesPerDensity~PHD$Day)
+lines(predict(lo), col="orange", lwd=2)
+lo <- loess(QND$CasesPerDensity~QND$Day)
+lines(predict(lo), col="yellow", lwd=2)
+lo <- loess(CKD$CasesPerDensity~CKD$Day)
+lines(predict(lo), col="purple", lwd=2)
+lo <- loess(MDD$CasesPerDensity~MDD$Day)
+lines(predict(lo), col="dark green", lwd=2)
+lo <- loess(KGD$CasesPerDensity~KGD$Day)
+lines(predict(lo), col="brown", lwd=2)
+lo <- loess(JFD$CasesPerDensity~JFD$Day)
+lines(predict(lo), col="blue", lwd=2)
+lo <- loess(WAD$CasesPerDensity~WAD$Day)
+lines(predict(lo), col="dark red", lwd=2)
+
+legend(1,6, legend=c("1.) Miami-Dade", "2.) Harris", "3.) Jefferson", "4.) Los Angeles", "5.) Contra Costa", "6.) Philidelphia", "7.) Queen's", "8.) Cook", "9.) Wayne", "10.) King"), col = c("dark green", "black", "blue", "green", "red", "orange", "yellow", "purple", "dark red", "brown"), lty = 1, cex = 0.9)
+
+# Ranked by Escore
+scatter.smooth(HAD$Day,HAD$CasesPerDensity, type="o", col="white",ylim = c(0,6),xlab = "Day", ylab = "Positive Test/Density ", main = "Number of Cases/Density Ranked by Enplanement Score", lwd = 2)
+grid(nx = NULL, ny = NULL, col = "darkgray", lty = "dotted")
+lo <- loess(CCD$CasesPerDensity~CCD$Day)
+lines(predict(lo), col="red", lwd=2)
+lo <- loess(LAD$CasesPerDensity~LAD$Day)
+lines(predict(lo), col="green", lwd=2)
+lo <- loess(PHD$CasesPerDensity~PHD$Day)
+lines(predict(lo), col="orange", lwd=2)
+lo <- loess(QND$CasesPerDensity~QND$Day)
+lines(predict(lo), col="yellow", lwd=2)
+lo <- loess(CKD$CasesPerDensity~CKD$Day)
+lines(predict(lo), col="purple", lwd=2)
+lo <- loess(MDD$CasesPerDensity~MDD$Day)
+lines(predict(lo), col="dark green", lwd=2)
+lo <- loess(KGD$CasesPerDensity~KGD$Day)
+lines(predict(lo), col="brown", lwd=2)
+lo <- loess(JFD$CasesPerDensity~JFD$Day)
+lines(predict(lo), col="blue", lwd=2)
+lo <- loess(WAD$CasesPerDensity~WAD$Day)
+lines(predict(lo), col="dark red", lwd=2)
+legend(1, 6, legend=c("1.) Cook", "2.) Los Angeles", "3.) Queen's", "4.) Contra Costa", "5.) King", "6.) Miami-Dade", "7.) Harris", "8.) Wayne", "9.) Philadelphia", "10.) Jefferson"), col=c("purple", "green", "yellow", "red", "brown", "dark green", "black", "dark red", "orange", "blue"), lty=1, cex=0.9)
+
+# Ranked by Mean Distance from an airport
+scatter.smooth(HAD$Day,HAD$CasesPerDensity, type="o", col="white",ylim = c(0,6),xlab = "Day", ylab = "Positive Test/Density ", main = "Number of Cases/Density by Mean Dist from Airport", lwd = 2)
+grid(nx = NULL, ny = NULL, col = "darkgray", lty = "dotted")
+lo <- loess(CCD$CasesPerDensity~CCD$Day)
+lines(predict(lo), col="red", lwd=2)
+lo <- loess(LAD$CasesPerDensity~LAD$Day)
+lines(predict(lo), col="green", lwd=2)
+lo <- loess(PHD$CasesPerDensity~PHD$Day)
+lines(predict(lo), col="orange", lwd=2)
+lo <- loess(QND$CasesPerDensity~QND$Day)
+lines(predict(lo), col="yellow", lwd=2)
+lo <- loess(CKD$CasesPerDensity~CKD$Day)
+lines(predict(lo), col="purple", lwd=2)
+lo <- loess(MDD$CasesPerDensity~MDD$Day)
+lines(predict(lo), col="dark green", lwd=2)
+lo <- loess(KGD$CasesPerDensity~KGD$Day)
+lines(predict(lo), col="brown", lwd=2)
+lo <- loess(JFD$CasesPerDensity~JFD$Day)
+lines(predict(lo), col="blue", lwd=2)
+lo <- loess(WAD$CasesPerDensity~WAD$Day)
+lines(predict(lo), col="dark red", lwd=2)
+legend(1, 6, legend=c("1.) Miami-Dade", "2.) Los Angeles", "3.) Contra Costa", "4.) Cook", "5.) Harris", "6.) Queen's", "7.) King", "8.) Philadelphia", "9.) Wayne", "10.) Jefferson"), col=c("dark green", "green", "red", "purple", "black", "yellow", "brown", "orange", "dark red", "blue"), lty=1, cex=0.9)
+
+# Ranked by days in quarantine
+scatter.smooth(HAD$Day,HAD$CasesPerDensity, type="o", col="white",ylim = c(0,6),xlab = "Day", ylab = "Positive Test/Density ", main = "Number of Cases/Density by Number of Days in Quarantine", lwd = 2)
+grid(nx = NULL, ny = NULL, col = "darkgray", lty = "dotted")
+lo <- loess(CCD$CasesPerDensity~CCD$Day)
+lines(predict(lo), col="red", lwd=2)
+lo <- loess(LAD$CasesPerDensity~LAD$Day)
+lines(predict(lo), col="green", lwd=2)
+lo <- loess(PHD$CasesPerDensity~PHD$Day)
+lines(predict(lo), col="orange", lwd=2)
+lo <- loess(QND$CasesPerDensity~QND$Day)
+lines(predict(lo), col="yellow", lwd=2)
+lo <- loess(CKD$CasesPerDensity~CKD$Day)
+lines(predict(lo), col="purple", lwd=2)
+lo <- loess(MDD$CasesPerDensity~MDD$Day)
+lines(predict(lo), col="dark green", lwd=2)
+lo <- loess(KGD$CasesPerDensity~KGD$Day)
+lines(predict(lo), col="brown", lwd=2)
+lo <- loess(JFD$CasesPerDensity~JFD$Day)
+lines(predict(lo), col="blue", lwd=2)
+lo <- loess(WAD$CasesPerDensity~WAD$Day)
+lines(predict(lo), col="dark red", lwd=2)
+legend(1, 6, legend=c("1.) Philadelphia", "2.) Contra Costa", "3.) Los Angeles", "4.) Cook", "5.) Jefferson", "6.) Wayne", "7.) Queen's", "8.) King", "9.) Harris", "10.) Miami-Dade"), col=c("orange", "red", "green", "purple", "blue", "dark red", "yellow", "brown", "black", "dark green"), lty=1, cex=0.9)
+
+# the following would be InfectionsbyDay/Density or slope per square mile
+# use this graph to propose further studies for analysis
+#   declined after a given amount of time.
+#   Explain further analysis of New York and Chicago
+
+par(mfrow = c(2,5))
+scatter.smooth(y = JFD$PositiveTestPerDensity, x = JFD$Day, main = "PositiveTestPerDensity/Day JFD", ylab = "PositiveTestPerDensity", xlab = "Day", col = "blue")
+scatter.smooth(y = CCD$PositiveTestPerDensity, x = CCD$Day, main = "PositiveTestPerDensity/Day CCD", ylab = "PositiveTestPerDensity", xlab = "Day", col = "red")
+scatter.smooth(y = LAD$PositiveTestPerDensity, x = LAD$Day, main = "PositiveTestPerDensity/Day LAD", ylab = "PositiveTestPerDensity", xlab = "Day", col = "green")
+scatter.smooth(y = PHD$PositiveTestPerDensity, x = PHD$Day, main = "PositiveTestPerDensity/Day PHD", ylab = "PositiveTestPerDensity", xlab = "Day", col = "orange")
+scatter.smooth(y = QND$PositiveTestPerDensity, x = QND$Day, main = "PositiveTestPerDensity/Day QND", ylab = "PositiveTestPerDensity", xlab = "Day", col = "gold")
+scatter.smooth(y = CKD$PositiveTestPerDensity, x = CKD$Day, main = "PositiveTestPerDensity/Day CKD", ylab = "PositiveTestPerDensity", xlab = "Day", col = "purple")
+scatter.smooth(y = MDD$PositiveTestPerDensity, x = MDD$Day, main = "PositiveTestPerDensity/Day MDD", ylab = "PositiveTestPerDensity", xlab = "Day", col = "dark green")
+scatter.smooth(y = KGD$PositiveTestPerDensity, x = KGD$Day, main = "PositiveTestPerDensity/Day KGD", ylab = "PositiveTestPerDensity", xlab = "Day", col = "brown")
+scatter.smooth(y = HAD$PositiveTestPerDensity, x = HAD$Day, main = "PositiveTestPerDensity/Day HAD", ylab = "PositiveTestPerDensity", xlab = "Day", col = "black")
+scatter.smooth(y = WAD$PositiveTestPerDensity, x = WAD$Day, main = "PositiveTestPerDensity/Day WAD", ylab = "PositiveTestPerDensity", xlab = "Day", col = "dark red")
+
+# final Proposition graph
+# use this graph to propose further studies for analysis
+# compare and mark each counties applied quarantine and observe if the infection rates
+#   declined after a given amount of time.
+par(mfrow = c(1,1))
+scatter.smooth(HAD$Day,HAD$PositiveTestPerDensity, type="o", col="white",ylim = c(0,0.35),xlab = "Day", ylab = "Rate", main = "Day-by-Day Rate of Increase/Density", lwd = 2)
+grid(nx = NULL, ny = NULL, col = "darkgray", lty = "dotted")
+lo <- loess(CCD$PositiveTestPerDensity~CCD$Day)
+lines(predict(lo), col="red", lwd=2)
+lo <- loess(LAD$PositiveTestPerDensity~LAD$Day)
+lines(predict(lo), col="green", lwd=2)
+lo <- loess(PHD$PositiveTestPerDensity~PHD$Day)
+lines(predict(lo), col="orange", lwd=2)
+lo <- loess(QND$PositiveTestPerDensity~QND$Day)
+lines(predict(lo), col="yellow", lwd=2)
+lo <- loess(CKD$PositiveTestPerDensity~CKD$Day)
+lines(predict(lo), col="purple", lwd=2)
+lo <- loess(MDD$PositiveTestPerDensity~MDD$Day)
+lines(predict(lo), col="dark green", lwd=2)
+lo <- loess(KGD$PositiveTestPerDensity~KGD$Day)
+lines(predict(lo), col="brown", lwd=2)
+lo <- loess(JFD$PositiveTestPerDensity~JFD$Day)
+lines(predict(lo), col="blue", lwd=2)
+lo <- loess(WAD$PositiveTestPerDensity~WAD$Day)
+lines(predict(lo), col="dark red", lwd=2)
+legend(0, 0.35, legend=c("Contra Costa County", "LA County", "Philadelphia County", "Queen's County", "Cook County", "Miami-Dade County", "King County", "Harris County", "Wayne County", "Jefferson County"), col=c("red", "green","orange", "yellow", "purple", "dark green", "brown", "black", "dark red", "blue"), lty=1, cex=0.75)
+
+#*****
+
+```
+
+# Factors that Affect the graphs above
+# Testing and time of documentation of cases may have affected the graphs above
+
+```{r Chicago and NY expanded}
+#5# Queens County starts on March 16th the length will be adjusted for to match Chicago #######################################################################
+#5# Queens County starts on March 16th the length will be adjusted for to match Chicago #######################################################################
+ExQND <- subset(zdata, zdata$State == "NY" & zdata$County.Name == "Queens County")
+ExQND <- ExQND[5:length(ExQND)]
+ExQND <- t(ExQND)
+colnames(ExQND) <- "Cases"
+ExQND <- as.data.frame(ExQND)
+ExQND <- subset(ExQND, ExQND$Cases > 100 & ExQND$Cases < 53100)
+
+ExQND$Day <- 0:47
+ExQND[,c("Day","Cases")] -> ExQND
+ExQND$Escore <- rep(29.5,48)
+ExQND$MeanDistance<-rep(16.30,48)
+ExQND$Area<-rep(109,48)
+ExQND$Population <- rep(2.273,48)
+ExQND$Population/ExQND$Area -> ExQND$Density
+ExQND$DaysClosed <- rep(42,48)
+
+tempv <- sequence(48)
+x <- sequence(48)
+for(i in x){
+  tempv[i] <- (ExQND$`Cases`[i+1] - ExQND$`Cases`[i])}
+
+ExQND$InfectionsByDay <- tempv
+ExQND$InfectionsByDay / ExQND$Population -> ExQND$PositiveTestPerPop
+rep(mean(ExQND$PositiveTestPerPop[1:47]),48) -> ExQND$AverageInfPerDay
+ExQND$AverageInfPerDay/ExQND$Population -> ExQND$AvInfPerPop
+ExQND$Cases / ExQND$Area -> ExQND$CasesPerArea
+ExQND$Cases / (ExQND$Density*1000000) -> ExQND$CasesPerDensity
+ExQND$InfectionsByDay / ExQND$Area -> ExQND$PositiveTestPerArea
+ExQND$InfectionsByDay / (ExQND$Density*1000000) -> ExQND$PositiveTestPerDensity
+
+#6# Cook County starts on March 17th  #########################################################################
+
+ExCKD <- subset(zdata, zdata$State == "IL" & zdata$County.Name == "Cook County")
+ExCKD <- ExCKD[5:length(ExCKD)]
+ExCKD <- t(ExCKD)
+colnames(ExCKD) <- "Cases"
+ExCKD <- as.data.frame(ExCKD)
+ExCKD <- subset(ExCKD, ExCKD$Cases > 100)
+
+ExCKD$Day <- 0:47
+ExCKD[,c("Day","Cases")] -> ExCKD
+ExCKD$Escore <- rep(76.8,48)
+ExCKD$MeanDistance<-rep(15.87,48)
+ExCKD$Area<-rep(945,48)
+ExCKD$Population <- rep(5.15,48)
+ExCKD$Population/ExCKD$Area -> ExCKD$Density
+ExCKD$DaysClosed <- rep(44,48)
+
+tempv <- sequence(48)
+x <- sequence(48)
+for(i in x){
+  tempv[i] <- (ExCKD$`Cases`[i+1] - ExCKD$`Cases`[i])}
+
+ExCKD$InfectionsByDay <- tempv
+ExCKD$InfectionsByDay / ExCKD$Population -> ExCKD$PositiveTestPerPop
+rep(mean(ExCKD$PositiveTestPerPop[1:47]),48) -> ExCKD$AverageInfPerDay
+ExCKD$AverageInfPerDay/ExCKD$Population -> ExCKD$AvInfPerPop
+ExCKD$Cases / ExCKD$Area -> ExCKD$CasesPerArea
+ExCKD$Cases / (ExCKD$Density*1000000) -> ExCKD$CasesPerDensity
+ExCKD$InfectionsByDay / ExCKD$Area -> ExCKD$PositiveTestPerArea
+ExCKD$InfectionsByDay / (ExCKD$Density*1000000) -> ExCKD$PositiveTestPerDensity
+
+scatter.smooth(ExQND$Day,ExQND$Cases, type="o", col="white",ylim = c(0,55000),xlab = "Day", ylab = "Confirmed Cases", main = "Covid-19 Cases", lwd = 2)
+grid(nx = NULL, ny = NULL, col = "darkgray", lty = "dotted")
+lo <- loess(ExCKD$Cases~ExCKD$Day)
+lines(predict(lo), col="green", lwd=2)
+legend(0, 50000, legend=c("Queen's County", "Cook County"), col=c("black", "green"), lty=1, cex=0.85)
+
+scatter.smooth(ExQND$Day,ExQND$CasesPerDensity, type="o", col="white",ylim = c(0,8),xlab = "Day", ylab = "Positive Test/Density ", main = "Number of Cases/Density", lwd = 2)
+grid(nx = NULL, ny = NULL, col = "darkgray", lty = "dotted")
+lo <- loess(ExCKD$CasesPerDensity~ExCKD$Day)
+lines(predict(lo), col="green", lwd=2)
+legend(0, 7, legend=c("Queen's County", "Cook County"), col=c("black", "green"), lty=1, cex=0.85)
+
+scatter.smooth(ExQND$Day,ExQND$PositiveTestPerDensity, type="o", col="white",ylim = c(0,0.4),xlab = "Day", ylab = "Rate", main = "Day-by-Day Rate of Increase/Density", lwd = 2)
+grid(nx = NULL, ny = NULL, col = "darkgray", lty = "dotted")
+lo <- loess(ExCKD$PositiveTestPerDensity~ExCKD$Day)
+lines(predict(lo), col="green", lwd=2)
+legend(0, 0.35, legend=c("Queen's County", "Cook County"), col=c("black", "green"), lty=1, cex=0.85)
+
+```
+
+Summary
+
+
+Results & Discussion: 
+
+Was the hypothesis proven to be true or void?
+Talk of ten counites and how they are related or how they were used for this particular study.
+
+Discuss Graphs, 
+  Pairs shows correlations
+  Linear regression shows further correlation to density
+  ...
+  
+  Explain that the other possible correlations are not necessarily clear since there are not enough data points
+  
+  
+  
+
+
+
+
+
+
+
+
+
